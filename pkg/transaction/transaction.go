@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -59,13 +58,17 @@ func (s *Service) ExportJson(file string) error {
 }
 
 
-func MapRowToTransaction(row []string) (id, from, to string, amount int64) {
-	a, err := strconv.Atoi(row[3])
+func (s *Service) ImportJson(file string) error {
+	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		log.Println(err)
-		return
+		return nil
 	}
-	amount = int64(a)
 
-	return row[0], row[1], row[2], amount
+	err = json.Unmarshal(data, &s.transactions)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+	return nil
 }
