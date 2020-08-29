@@ -1,8 +1,8 @@
 package transaction
 
 import (
-	"encoding/csv"
-	"io"
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"strconv"
 	"sync"
@@ -10,11 +10,11 @@ import (
 )
 
 type Transaction struct {
-	Id      string
-	From    string
-	To      string
-	Amount  int64
-	Created int64
+	Id      string `json:"id"`
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Amount  int64 `json:"amount"`
+	Created int64 `json:"created"`
 }
 
 type Service struct {
@@ -42,29 +42,22 @@ func (s *Service) Register(id, from, to string, amount int64) (string, error) {
 	return t.Id, nil
 }
 
-func (s *Service) Export(writer io.Writer) error {
-	s.mu.Lock()
-	if len(s.transactions) == 0 {
-		s.mu.Unlock()
+func (s *Service) ExportJson(file string) error {
+
+	encoded, err := json.MarshalIndent(s.transactions, "", " ")
+	if err != nil {
+		log.Println(err)
 		return nil
 	}
 
-	records := make([][]string, len(s.transactions))
-	for _, t := range s.transactions {
-		record := []string{
-			t.Id,
-			t.From,
-			t.To,
-			strconv.Itoa(int(t.Amount)),
-			strconv.FormatInt(t.Created, 10),
-		}
-		records = append(records, record)
+	err = ioutil.WriteFile(file, encoded, 0777)
+	if err != nil {
+		log.Println(err)
+		return nil
 	}
-	s.mu.Unlock()
-
-	w := csv.NewWriter(writer)
-	return w.WriteAll(records)
+	return nil
 }
+
 
 func MapRowToTransaction(row []string) (id, from, to string, amount int64) {
 	a, err := strconv.Atoi(row[3])
@@ -73,5 +66,6 @@ func MapRowToTransaction(row []string) (id, from, to string, amount int64) {
 		return
 	}
 	amount = int64(a)
+
 	return row[0], row[1], row[2], amount
 }

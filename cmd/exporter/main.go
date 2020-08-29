@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	if err := execute("export.csv"); err != nil {
+	if err := execute("export.json"); err != nil {
 		os.Exit(1)
 	}
 }
@@ -42,9 +42,10 @@ func execute(filename string) error {
 		}
 	}
 
-	if err = svc.Export(file); err != nil {
+	if err = svc.ExportJson(filename); err != nil {
 		log.Println(err)
 		return err
 	}
+
 	return err
 }
