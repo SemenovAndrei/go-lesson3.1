@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	if err := execute("export.json"); err != nil {
+	if err := execute("export.xml"); err != nil {
 		os.Exit(1)
 	}
 }
@@ -30,7 +30,7 @@ func execute(filename string) error {
 
 	svc := transaction.NewService()
 
-	err = svc.ImportJson(filename)
+	err = svc.ImportXml(filename)
 	if err != nil {
 		log.Println(err)
 		return err

@@ -1,7 +1,6 @@
 package transaction
 
 import (
-	"encoding/json"
 	"encoding/xml"
 	"io/ioutil"
 	"log"
@@ -55,29 +54,31 @@ func (s *Service) ExportXml(file string) error {
 	encoded, err := xml.MarshalIndent(t, "", " ")
 	if err != nil {
 		log.Println(err)
-		return nil
+		return err
 	}
 
 	err = ioutil.WriteFile(file, encoded, 0777)
 	if err != nil {
 		log.Println(err)
-		return nil
+		return err
 	}
 	return nil
 }
 
 
-func (s *Service) ImportJson(file string) error {
+func (s *Service) ImportXml(file string) error {
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		log.Println(err)
-		return nil
+		return err
 	}
 
-	err = json.Unmarshal(data, &s.transactions)
+	var t Transactions
+	err = xml.Unmarshal(data, &t)
 	if err != nil {
 		log.Println(err)
-		return nil
+		return err
 	}
+	s.transactions = t.Transactions
 	return nil
 }
