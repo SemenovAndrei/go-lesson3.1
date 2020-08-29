@@ -46,13 +46,13 @@ func (s *Service) ExportJson(file string) error {
 	encoded, err := json.MarshalIndent(s.transactions, "", " ")
 	if err != nil {
 		log.Println(err)
-		return nil
+		return err
 	}
 
 	err = ioutil.WriteFile(file, encoded, 0777)
 	if err != nil {
 		log.Println(err)
-		return nil
+		return err
 	}
 	return nil
 }
@@ -62,13 +62,13 @@ func (s *Service) ImportJson(file string) error {
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		log.Println(err)
-		return nil
+		return err
 	}
 
 	err = json.Unmarshal(data, &s.transactions)
 	if err != nil {
 		log.Println(err)
-		return nil
+		return err
 	}
 	return nil
 }
