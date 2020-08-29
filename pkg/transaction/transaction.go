@@ -2,6 +2,7 @@ package transaction
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"io/ioutil"
 	"log"
 	"sync"
@@ -9,11 +10,17 @@ import (
 )
 
 type Transaction struct {
-	Id      string `json:"id"`
-	From    string `json:"from"`
-	To      string `json:"to"`
-	Amount  int64 `json:"amount"`
-	Created int64 `json:"created"`
+	XMLName string `xml:"transaction"`
+	Id      string `json:"id" xml:"id"`
+	From    string `json:"from" xml:"from"`
+	To      string `json:"to" xml:"to"`
+	Amount  int64 `json:"amount" xml:"amount"`
+	Created int64 `json:"created" xml:"created"`
+}
+
+type Transactions struct {
+	XMLName string `xml:"transactions"`
+	Transactions []*Transaction
 }
 
 type Service struct {
@@ -41,9 +48,11 @@ func (s *Service) Register(id, from, to string, amount int64) (string, error) {
 	return t.Id, nil
 }
 
-func (s *Service) ExportJson(file string) error {
+func (s *Service) ExportXml(file string) error {
+	var t Transactions
+	t.Transactions = s.transactions
 
-	encoded, err := json.MarshalIndent(s.transactions, "", " ")
+	encoded, err := xml.MarshalIndent(t, "", " ")
 	if err != nil {
 		log.Println(err)
 		return nil
