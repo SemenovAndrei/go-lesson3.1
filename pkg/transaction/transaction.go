@@ -1,20 +1,25 @@
 package transaction
 
 import (
-	"encoding/csv"
-	"io"
+	"encoding/xml"
+	"io/ioutil"
 	"log"
-	"strconv"
 	"sync"
 	"time"
 )
 
 type Transaction struct {
-	Id      string
-	From    string
-	To      string
-	Amount  int64
-	Created int64
+	XMLName string `xml:"transaction"`
+	Id      string `json:"id" xml:"id"`
+	From    string `json:"from" xml:"from"`
+	To      string `json:"to" xml:"to"`
+	Amount  int64 `json:"amount" xml:"amount"`
+	Created int64 `json:"created" xml:"created"`
+}
+
+type Transactions struct {
+	XMLName string `xml:"transactions"`
+	Transactions []*Transaction
 }
 
 type Service struct {
@@ -42,36 +47,39 @@ func (s *Service) Register(id, from, to string, amount int64) (string, error) {
 	return t.Id, nil
 }
 
-func (s *Service) Export(writer io.Writer) error {
-	s.mu.Lock()
-	if len(s.transactions) == 0 {
-		s.mu.Unlock()
-		return nil
-	}
+func (s *Service) ExportXml(file string) error {
+	var t Transactions
+	t.Transactions = s.transactions
 
-	records := make([][]string, len(s.transactions))
-	for _, t := range s.transactions {
-		record := []string{
-			t.Id,
-			t.From,
-			t.To,
-			strconv.Itoa(int(t.Amount)),
-			strconv.FormatInt(t.Created, 10),
-		}
-		records = append(records, record)
-	}
-	s.mu.Unlock()
-
-	w := csv.NewWriter(writer)
-	return w.WriteAll(records)
-}
-
-func MapRowToTransaction(row []string) (id, from, to string, amount int64) {
-	a, err := strconv.Atoi(row[3])
+	encoded, err := xml.MarshalIndent(t, "", " ")
 	if err != nil {
 		log.Println(err)
-		return
+		return err
 	}
-	amount = int64(a)
-	return row[0], row[1], row[2], amount
+	encoded = []byte(xml.Header + string(encoded))
+
+	err = ioutil.WriteFile(file, encoded, 0777)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
+}
+
+
+func (s *Service) ImportXml(file string) error {
+	data, err := ioutil.ReadFile(file)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	var t Transactions
+	err = xml.Unmarshal(data, &t)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	s.transactions = t.Transactions
+	return nil
 }
