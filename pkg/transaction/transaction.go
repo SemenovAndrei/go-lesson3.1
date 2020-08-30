@@ -56,6 +56,7 @@ func (s *Service) ExportXml(file string) error {
 		log.Println(err)
 		return err
 	}
+	encoded = []byte(xml.Header + string(encoded))
 
 	err = ioutil.WriteFile(file, encoded, 0777)
 	if err != nil {
