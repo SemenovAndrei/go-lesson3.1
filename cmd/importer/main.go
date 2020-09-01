@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/csv"
 	"github.com/i-hit/go-lesson3.1.git/pkg/transaction"
 	"io"
 	"log"
@@ -9,7 +8,7 @@ import (
 )
 
 func main() {
-	if err := execute("export.csv"); err != nil {
+	if err := execute("export.json"); err != nil {
 		os.Exit(1)
 	}
 }
@@ -29,21 +28,12 @@ func execute(filename string) error {
 		}
 	}(file)
 
-	reader := csv.NewReader(file)
-	records, err := reader.ReadAll()
+	svc := transaction.NewService()
+
+	err = svc.ImportJson(filename)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
-
-	svc := transaction.NewService()
-
-	for value := range records {
-		if _, err = svc.Register(transaction.MapRowToTransaction(records[value])); err != nil {
-			log.Println(err)
-			return err
-		}
-	}
-
 	return err
 }
