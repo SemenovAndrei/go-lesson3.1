@@ -44,8 +44,8 @@ func (s *Service) Register(id, from, to string, amount int64) (string, error) {
 
 func (s *Service) Export(writer io.Writer) error {
 	s.mu.Lock()
+	defer s.mu.Unlock()
 	if len(s.transactions) == 0 {
-		s.mu.Unlock()
 		return nil
 	}
 
@@ -60,7 +60,6 @@ func (s *Service) Export(writer io.Writer) error {
 		}
 		records = append(records, record)
 	}
-	s.mu.Unlock()
 
 	w := csv.NewWriter(writer)
 	return w.WriteAll(records)
